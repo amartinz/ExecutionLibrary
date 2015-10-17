@@ -19,17 +19,58 @@ public class ShellManager {
     private static ArrayList<RootShell> rootShells = new ArrayList<>();
     private static ArrayList<NormalShell> normalShells = new ArrayList<>();
 
-    private ShellManager(@NonNull Context context) {
+    private ShellManager() {
         cleanupShells();
-
-        Installer.installBusyBox(context);
     }
 
-    @NonNull public static ShellManager get(@NonNull Context context) {
+    @Deprecated @NonNull public static ShellManager get(@NonNull Context context) {
+        return get();
+    }
+
+    @NonNull public static ShellManager get() {
         if (sInstance == null) {
-            sInstance = new ShellManager(context);
+            sInstance = new ShellManager();
         }
         return sInstance;
+    }
+
+    public ShellManager installBusyBox(@NonNull Context context) {
+        Installer.installBusyBox(context);
+        return this;
+    }
+
+    @Nullable public Command runRootCommand(@NonNull String cmd) {
+        return runRootCommand(cmd, false);
+    }
+
+    @Nullable public Command runRootCommand(@NonNull String cmd, boolean waitForIt) {
+        final RootShell rootShell = getRootShell();
+        if (rootShell != null) {
+            final Command command = new Command(cmd);
+            rootShell.add(command);
+            if (waitForIt) {
+                command.waitFor();
+            }
+            return command;
+        }
+        return null;
+    }
+
+    @Nullable public Command runShellCommand(@NonNull String cmd) {
+        return runShellCommand(cmd, false);
+    }
+
+    @Nullable public Command runShellCommand(@NonNull String cmd, boolean waitForIt) {
+        final NormalShell normalShell = getNormalShell();
+        if (normalShell != null) {
+            final Command command = new Command(cmd);
+            normalShell.add(command);
+            if (waitForIt) {
+                command.waitFor();
+            }
+            return command;
+        }
+        return null;
     }
 
     @Nullable public RootShell getRootShell() {
