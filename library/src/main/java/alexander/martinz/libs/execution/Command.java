@@ -1,6 +1,16 @@
 package alexander.martinz.libs.execution;
 
+import android.support.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Command implements CommandListener {
+    public static final int OUTPUT_NONE = -1;
+    public static final int OUTPUT_ALL = 1;
+    public static final int OUTPUT_STRING = 2;
+    public static final int OUTPUT_LIST = 3;
+
     public int id;
     public int exitCode;
 
@@ -14,6 +24,9 @@ public class Command implements CommandListener {
     public int totalOutputProcessed;
 
     private String[] commands;
+
+    private StringBuilder outputBuilder;
+    private List<String> outputList;
 
     public Command(String... commands) {
         this(0, Shell.DEFAULT_TIMEOUT, commands);
@@ -64,6 +77,43 @@ public class Command implements CommandListener {
         return this.isTerminated;
     }
 
+    public synchronized Command setShouldCollect(boolean shouldCollect) {
+        return setShouldCollect(shouldCollect, OUTPUT_NONE);
+    }
+
+    public synchronized Command setShouldCollect(boolean shouldCollect, int outputType) {
+        if (!shouldCollect) {
+            outputBuilder = null;
+            outputList = null;
+            return this;
+        }
+
+        switch (outputType) {
+            default:
+            case OUTPUT_NONE: {
+                outputBuilder = null;
+                outputList = null;
+                break;
+            }
+            case OUTPUT_ALL: {
+                outputBuilder = new StringBuilder();
+                outputList = new ArrayList<>();
+                break;
+            }
+            case OUTPUT_STRING: {
+                outputBuilder = new StringBuilder();
+                outputList = null;
+                break;
+            }
+            case OUTPUT_LIST: {
+                outputBuilder = null;
+                outputList = new ArrayList<>();
+                break;
+            }
+        }
+        return this;
+    }
+
     public synchronized final int getExitCode() {
         return this.exitCode;
     }
@@ -88,6 +138,9 @@ public class Command implements CommandListener {
         this.isExecuting = false;
         this.isTerminated = false;
         this.exitCode = -1;
+
+        this.outputBuilder = null;
+        this.outputList = null;
     }
 
     protected final void commandFinished() {
@@ -140,7 +193,21 @@ public class Command implements CommandListener {
         // needs to be overwritten to implement
         // WARNING: do not forget to call super!
         ShellLogger.v(this, "%s -> %s", id, line);
+        if (outputBuilder != null) {
+            outputBuilder.append(line);
+        }
+        if (outputList != null) {
+            outputList.add(line);
+        }
         totalOutputProcessed++;
+    }
+
+    @Nullable public String getOutput() {
+        return (outputBuilder != null ? outputBuilder.toString() : null);
+    }
+
+    @Nullable public List<String> getOutputList() {
+        return outputList;
     }
 
     private class ExecutionMonitor extends Thread {
