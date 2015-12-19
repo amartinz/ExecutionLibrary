@@ -9,7 +9,8 @@ public class Command implements CommandListener {
     public static final int OUTPUT_NONE = -1;
     public static final int OUTPUT_ALL = 1;
     public static final int OUTPUT_STRING = 2;
-    public static final int OUTPUT_LIST = 3;
+    public static final int OUTPUT_STRING_NEWLINE = 3;
+    public static final int OUTPUT_LIST = 4;
 
     public int id;
     public int exitCode;
@@ -25,6 +26,7 @@ public class Command implements CommandListener {
 
     private String[] commands;
 
+    private int outputType = OUTPUT_NONE;
     private StringBuilder outputBuilder;
     private List<String> outputList;
 
@@ -78,7 +80,8 @@ public class Command implements CommandListener {
     }
 
     public synchronized Command setOutputType(int outputType) {
-        switch (outputType) {
+        this.outputType = outputType;
+        switch (this.outputType) {
             default:
             case OUTPUT_NONE: {
                 outputBuilder = null;
@@ -90,7 +93,8 @@ public class Command implements CommandListener {
                 outputList = new ArrayList<>();
                 break;
             }
-            case OUTPUT_STRING: {
+            case OUTPUT_STRING:
+            case OUTPUT_STRING_NEWLINE: {
                 outputBuilder = new StringBuilder();
                 outputList = null;
                 break;
@@ -182,6 +186,9 @@ public class Command implements CommandListener {
         ShellLogger.v(this, "%s -> %s", id, line);
         if (outputBuilder != null) {
             outputBuilder.append(line);
+            if (outputType == OUTPUT_STRING_NEWLINE) {
+                outputBuilder.append('\n');
+            }
         }
         if (outputList != null) {
             outputList.add(line);
@@ -190,7 +197,7 @@ public class Command implements CommandListener {
     }
 
     @Nullable public String getOutput() {
-        return (outputBuilder != null ? outputBuilder.toString() : null);
+        return (outputBuilder != null ? outputBuilder.toString().trim() : null);
     }
 
     @Nullable public List<String> getOutputList() {
