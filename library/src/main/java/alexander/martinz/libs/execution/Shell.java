@@ -122,11 +122,15 @@ public abstract class Shell {
     }
 
     protected static Command fireAndBlockInternal(final Command command, final Shell shell) {
-        return shell.add(command.setShouldCollect(true, Command.OUTPUT_STRING)).waitFor();
+        return shell.add(command).waitFor();
+    }
+
+    protected static Command fireAndBlockStringInternal(final Command command, final Shell shell) {
+        return shell.add(command.setOutputType(Command.OUTPUT_STRING)).waitFor();
     }
 
     protected static Command fireAndBlockListInternal(final Command command, final Shell shell) {
-        return shell.add(command.setShouldCollect(true, Command.OUTPUT_LIST)).waitFor();
+        return shell.add(command.setOutputType(Command.OUTPUT_LIST)).waitFor();
     }
 
     protected static Command fireAndForgetInternal(final Command command, final Shell shell) {

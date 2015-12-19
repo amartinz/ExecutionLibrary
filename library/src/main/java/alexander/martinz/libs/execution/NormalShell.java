@@ -21,6 +21,14 @@ public class NormalShell extends Shell {
         return Shell.fireAndBlockInternal(command, shell).getOutput();
     }
 
+    @Nullable public static String fireAndBlockString(Command command) {
+        final NormalShell shell = ShellManager.get().getNormalShell();
+        if (shell == null) {
+            return null;
+        }
+        return Shell.fireAndBlockStringInternal(command, shell).getOutput();
+    }
+
     @Nullable public static List<String> fireAndBlockList(Command command) {
         final NormalShell shell = ShellManager.get().getNormalShell();
         if (shell == null) {

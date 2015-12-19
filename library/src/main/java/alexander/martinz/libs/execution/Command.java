@@ -77,17 +77,7 @@ public class Command implements CommandListener {
         return this.isTerminated;
     }
 
-    public synchronized Command setShouldCollect(boolean shouldCollect) {
-        return setShouldCollect(shouldCollect, OUTPUT_NONE);
-    }
-
-    public synchronized Command setShouldCollect(boolean shouldCollect, int outputType) {
-        if (!shouldCollect) {
-            outputBuilder = null;
-            outputList = null;
-            return this;
-        }
-
+    public synchronized Command setOutputType(int outputType) {
         switch (outputType) {
             default:
             case OUTPUT_NONE: {
@@ -138,9 +128,6 @@ public class Command implements CommandListener {
         this.isExecuting = false;
         this.isTerminated = false;
         this.exitCode = -1;
-
-        this.outputBuilder = null;
-        this.outputList = null;
     }
 
     protected final void commandFinished() {
