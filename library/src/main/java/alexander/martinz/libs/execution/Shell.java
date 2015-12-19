@@ -121,6 +121,18 @@ public abstract class Shell {
         return command;
     }
 
+    protected static Command fireAndBlockInternal(final Command command, final Shell shell) {
+        return shell.add(command.setShouldCollect(true, Command.OUTPUT_STRING)).waitFor();
+    }
+
+    protected static Command fireAndBlockListInternal(final Command command, final Shell shell) {
+        return shell.add(command.setShouldCollect(true, Command.OUTPUT_LIST)).waitFor();
+    }
+
+    protected static Command fireAndForgetInternal(final Command command, final Shell shell) {
+        return shell.add(command);
+    }
+
     protected void notifyThreads() {
         final Thread t = new Thread() {
             public void run() {
