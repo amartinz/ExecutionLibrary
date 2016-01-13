@@ -1,5 +1,7 @@
 package alexander.martinz.libs.execution;
 
+import android.os.AsyncTask;
+
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
@@ -138,14 +140,13 @@ public abstract class Shell {
     }
 
     protected void notifyThreads() {
-        final Thread t = new Thread() {
-            public void run() {
+        AsyncTask.execute(new Runnable() {
+            @Override public void run() {
                 synchronized (commands) {
                     commands.notifyAll();
                 }
             }
-        };
-        t.start();
+        });
     }
 
     public void close() {
