@@ -1,6 +1,7 @@
 package alexander.martinz.libs.execution;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -134,6 +135,10 @@ public abstract class Shell {
         return shell.add(command.setOutputType(Command.OUTPUT_STRING)).waitFor();
     }
 
+    protected static Command fireAndBlockStringNewlineInternal(final Command command, final Shell shell) {
+        return shell.add(command.setOutputType(Command.OUTPUT_STRING_NEWLINE)).waitFor();
+    }
+
     protected static Command fireAndBlockListInternal(final Command command, final Shell shell) {
         return shell.add(command.setOutputType(Command.OUTPUT_LIST)).waitFor();
     }
@@ -226,13 +231,16 @@ public abstract class Shell {
                         isExecuting = true;
                         final Command cmd = commands.get(toWrite);
                         cmd.startExecution();
-                        if (ShellLogger.DEBUG) {
-                            Log.v(TAG, String.format("Executing: %s", cmd.getCommand()));
-                        }
-                        outputStream.write(cmd.getCommand());
 
-                        final String line = String.format("\necho %s %s $?\n",
-                                TOKEN, totalExecuted);
+                        final String[] toExecute = cmd.getCommands();
+                        for (final String cmdToExecute : toExecute) {
+                            if (TextUtils.isEmpty(cmdToExecute)) {
+                                continue;
+                            }
+                            outputStream.write(cmdToExecute);
+                        }
+
+                        final String line = String.format("\necho %s %s $?\n", TOKEN, totalExecuted);
                         outputStream.write(line);
                         outputStream.flush();
                         toWrite++;
@@ -284,14 +292,10 @@ public abstract class Shell {
 
                     final int pos = outputLine.indexOf(TOKEN);
                     if (pos == -1) {
-                        /**
-                         * send the doOutput for the implementer to process
-                         */
+                        // send the doOutput for the implementer to process
                         command.doOutput(command.id, outputLine);
                     } else if (pos > 0) {
-                        /**
-                         * token is suffix of doOutput, send doOutput part to implementer
-                         */
+                        // token is suffix of doOutput, send doOutput part to implementer
                         command.doOutput(command.id, outputLine.substring(0, pos));
                     }
 
@@ -326,10 +330,6 @@ public abstract class Shell {
                     while (command.totalOutput > command.totalOutputProcessed) {
                         if (iterations == 0) {
                             iterations++;
-                            if (ShellLogger.DEBUG) {
-                                Log.v(TAG, String.format("Waiting for doOutput to be processed - %s of %s",
-                                        command.totalOutputProcessed, command.totalOutput));
-                            }
                         }
 
                         synchronized (this) {
@@ -337,9 +337,6 @@ public abstract class Shell {
                                 this.wait(2000);
                             } catch (Exception ignored) { }
                         }
-                    }
-                    if (ShellLogger.DEBUG) {
-                        Log.v(TAG, "finished reading all doOutput");
                     }
 
                     command.setExitCode(exitCode);
@@ -430,7 +427,6 @@ public abstract class Shell {
                         throw new EOFException();
                     } else if ("".equals(line)) {
                         // let's continue checking
-                        continue;
                     } else if ("Opening".equals(line)) {
                         this.exitCode = EXIT_SUCCESS;
                         setupShellOom();

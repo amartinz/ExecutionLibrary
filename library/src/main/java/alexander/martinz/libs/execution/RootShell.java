@@ -37,6 +37,18 @@ public class RootShell extends Shell {
         return Shell.fireAndBlockStringInternal(command, shell).getOutput();
     }
 
+    @Nullable public static String fireAndBlockStringNewline(String command) {
+        return fireAndBlockStringNewline(new Command(command));
+    }
+
+    @Nullable public static String fireAndBlockStringNewline(Command command) {
+        final RootShell shell = ShellManager.get().getRootShell();
+        if (shell == null) {
+            return null;
+        }
+        return Shell.fireAndBlockStringNewlineInternal(command, shell).getOutput();
+    }
+
     @Nullable public static List<String> fireAndBlockList(String command) {
         return fireAndBlockList(new Command(command));
     }

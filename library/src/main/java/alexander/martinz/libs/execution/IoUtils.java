@@ -4,8 +4,6 @@ import java.io.Closeable;
 import java.net.Socket;
 
 public class IoUtils {
-    private static final String TAG = IoUtils.class.getSimpleName();
-
     public static void closeQuietly(final Object o) {
         if (o instanceof Socket) {
             try {

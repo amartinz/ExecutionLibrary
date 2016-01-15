@@ -1,6 +1,7 @@
 package alexander.martinz.libs.execution;
 
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -47,27 +48,18 @@ public class Command implements CommandListener {
         this.commands = commands;
     }
 
-    public final String getCommand() {
-        if (commands == null) {
-            if (ShellLogger.DEBUG) {
-                Log.wtf(TAG, "No commands?");
-            }
-            return "";
+    public final String[] getCommands() {
+        if (commands == null || commands.length == 0) {
+            throw new RuntimeException("No commands?");
         }
-
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < commands.length; i++) {
-            if (i > 0) {
-                sb.append('\n');
-            }
-            sb.append(commands[i]);
-        }
-        return sb.toString();
+        return commands;
     }
 
     public Command waitFor() {
         while (!isFinished) {
-            // do nothing
+            try {
+                Thread.sleep(3);
+            } catch (Exception ignored) { }
         }
         return this;
     }
@@ -195,9 +187,6 @@ public class Command implements CommandListener {
     @Override public void onCommandOutput(int id, String line) {
         // needs to be overwritten to implement
         // WARNING: do not forget to call super!
-        if (ShellLogger.DEBUG) {
-            Log.v(TAG, String.format("%s -> %s", id, line));
-        }
         if (outputBuilder != null) {
             outputBuilder.append(line);
             if (outputType == OUTPUT_STRING_NEWLINE) {
