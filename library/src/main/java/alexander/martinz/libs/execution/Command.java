@@ -1,11 +1,14 @@
 package alexander.martinz.libs.execution;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Command implements CommandListener {
+    private static final String TAG = Command.class.getSimpleName();
+
     public static final int OUTPUT_NONE = -1;
     public static final int OUTPUT_ALL = 1;
     public static final int OUTPUT_STRING = 2;
@@ -46,7 +49,9 @@ public class Command implements CommandListener {
 
     public final String getCommand() {
         if (commands == null) {
-            ShellLogger.wtf(this, "No commands?");
+            if (ShellLogger.DEBUG) {
+                Log.wtf(TAG, "No commands?");
+            }
             return "";
         }
 
@@ -125,7 +130,7 @@ public class Command implements CommandListener {
         }
     }
 
-    public final void resetCommand() {
+    public synchronized final void resetCommand() {
         this.isFinished = false;
         this.totalOutput = 0;
         this.totalOutputProcessed = 0;
@@ -139,24 +144,29 @@ public class Command implements CommandListener {
             synchronized (this) {
                 onCommandCompleted(id, exitCode);
 
-                ShellLogger.v(this, "finished command with id \"%s\"", id);
+                if (ShellLogger.DEBUG) {
+                    Log.v(TAG, String.format("finished command with id \"%s\"", id));
+                }
                 finishCommand();
             }
         }
     }
 
     protected final void finishCommand() {
-        isExecuting = false;
-        isFinished = true;
-        this.notifyAll();
+        synchronized (this) {
+            isExecuting = false;
+            isFinished = true;
+            this.notifyAll();
+        }
     }
 
     public final void terminate(String reason) {
         synchronized (this) {
             onCommandTerminated(id, reason);
 
-            ShellLogger.w(this, "command \"%s\" did not finish because it was terminated!\n%s",
-                    id, reason);
+            if (ShellLogger.DEBUG) {
+                Log.w(TAG, String.format("command \"%s\" did not finish because it was terminated!\n%s", id, reason));
+            }
             setExitCode(-1);
             isTerminated = true;
             finishCommand();
@@ -177,13 +187,17 @@ public class Command implements CommandListener {
 
     @Override public void onCommandTerminated(int id, String reason) {
         // needs to be overwritten to implement
-        ShellLogger.v(this, "terminated command with id \"%s\": %s", id, reason);
+        if (ShellLogger.DEBUG) {
+            Log.v(TAG, String.format("terminated command with id \"%s\": %s", id, reason));
+        }
     }
 
     @Override public void onCommandOutput(int id, String line) {
         // needs to be overwritten to implement
         // WARNING: do not forget to call super!
-        ShellLogger.v(this, "%s -> %s", id, line);
+        if (ShellLogger.DEBUG) {
+            Log.v(TAG, String.format("%s -> %s", id, line));
+        }
         if (outputBuilder != null) {
             outputBuilder.append(line);
             if (outputType == OUTPUT_STRING_NEWLINE) {

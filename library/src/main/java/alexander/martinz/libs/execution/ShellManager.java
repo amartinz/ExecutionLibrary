@@ -3,6 +3,7 @@ package alexander.martinz.libs.execution;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,9 +12,10 @@ import java.util.concurrent.TimeoutException;
 
 import alexander.martinz.libs.execution.binaries.Installer;
 import alexander.martinz.libs.execution.exceptions.RootDeniedException;
-import alexander.martinz.libs.logger.Logger;
 
 public class ShellManager {
+    private static final String TAG = ShellManager.class.getSimpleName();
+
     private static ShellManager sInstance;
 
     private static ArrayList<RootShell> rootShells = new ArrayList<>();
@@ -61,7 +63,9 @@ public class ShellManager {
         try {
             return new RootShell();
         } catch (IOException | TimeoutException | RootDeniedException e) {
-            Logger.e(this, "Error creating new root shell", e);
+            if (ShellLogger.DEBUG) {
+                Log.e(TAG, "Error creating new root shell", e);
+            }
         }
         return null;
     }
@@ -88,7 +92,9 @@ public class ShellManager {
         try {
             return new NormalShell();
         } catch (IOException | TimeoutException | RootDeniedException e) {
-            Logger.e(this, "Error creating new shell", e);
+            if (ShellLogger.DEBUG) {
+                Log.e(TAG, "Error creating new shell", e);
+            }
         }
         return null;
     }

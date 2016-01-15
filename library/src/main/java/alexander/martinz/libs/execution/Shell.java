@@ -1,6 +1,7 @@
 package alexander.martinz.libs.execution;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -15,6 +16,8 @@ import java.util.concurrent.TimeoutException;
 import alexander.martinz.libs.execution.exceptions.RootDeniedException;
 
 public abstract class Shell {
+    private static final String TAG = Shell.class.getSimpleName();
+
     public static final int DEFAULT_TIMEOUT = 15000;
 
     private static final String ENCODING = "UTF-8";
@@ -152,7 +155,9 @@ public abstract class Shell {
     public void close() {
         int count = 0;
         while (isExecuting) {
-            ShellLogger.v(this, "Waiting on shell to finish executing before closing...");
+            if (ShellLogger.DEBUG) {
+                Log.v(TAG, "Waiting on shell to finish executing before closing...");
+            }
             count++;
 
             // fail safe
@@ -166,7 +171,9 @@ public abstract class Shell {
             this.notifyThreads();
         }
 
-        ShellLogger.v(this, "Shell closed!");
+        if (ShellLogger.DEBUG) {
+            Log.v(TAG, "Shell closed!");
+        }
     }
 
     private void closeStreams() {
@@ -182,7 +189,9 @@ public abstract class Shell {
     private synchronized void cleanupCommands() {
         this.isCleaning = true;
         final int toClean = Math.abs(this.maxCommands - (this.maxCommands / 4));
-        ShellLogger.v(this, "Cleaning up: %s", toClean);
+        if (ShellLogger.DEBUG) {
+            Log.v(TAG, String.format("Cleaning up: %s", toClean));
+        }
 
         for (int i = 0; i < toClean; i++) {
             this.commands.remove(0);
@@ -204,8 +213,11 @@ public abstract class Shell {
                     }
 
                     if (toWrite >= maxCommands) {
+                        if (ShellLogger.DEBUG && (toRead != toWrite)) {
+                            Log.v(TAG, "Waiting for r/w to catch up before cleanup");
+                        }
                         while (toRead != toWrite) {
-                            ShellLogger.v(this, "Waiting for r/w to catch up before cleanup");
+                            // wait
                         }
                         cleanupCommands();
                     }
@@ -214,7 +226,9 @@ public abstract class Shell {
                         isExecuting = true;
                         final Command cmd = commands.get(toWrite);
                         cmd.startExecution();
-                        ShellLogger.v(this, "Executing: %s", cmd.getCommand());
+                        if (ShellLogger.DEBUG) {
+                            Log.v(TAG, String.format("Executing: %s", cmd.getCommand()));
+                        }
                         outputStream.write(cmd.getCommand());
 
                         final String line = String.format("\necho %s %s $?\n",
@@ -227,12 +241,16 @@ public abstract class Shell {
                         isExecuting = false;
                         outputStream.write("\nexit 0\n");
                         outputStream.flush();
-                        ShellLogger.d(this, "Closing shell");
+                        if (ShellLogger.DEBUG) {
+                            Log.v(TAG, "Closing shell");
+                        }
                         return;
                     }
                 }
             } catch (IOException | InterruptedException e) {
-                ShellLogger.e(this, "IOException | InterruptedException", e);
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, "IOException | InterruptedException", e);
+                }
             } finally {
                 toWrite = 0;
                 closeStreams();
@@ -308,8 +326,10 @@ public abstract class Shell {
                     while (command.totalOutput > command.totalOutputProcessed) {
                         if (iterations == 0) {
                             iterations++;
-                            ShellLogger.v(this, "Waiting for doOutput to be processed - %s of %s",
-                                    command.totalOutputProcessed, command.totalOutput);
+                            if (ShellLogger.DEBUG) {
+                                Log.v(TAG, String.format("Waiting for doOutput to be processed - %s of %s",
+                                        command.totalOutputProcessed, command.totalOutput));
+                            }
                         }
 
                         synchronized (this) {
@@ -318,7 +338,9 @@ public abstract class Shell {
                             } catch (Exception ignored) { }
                         }
                     }
-                    ShellLogger.v(this, "finished reading all doOutput");
+                    if (ShellLogger.DEBUG) {
+                        Log.v(TAG, "finished reading all doOutput");
+                    }
 
                     command.setExitCode(exitCode);
                     command.commandFinished();
@@ -349,11 +371,15 @@ public abstract class Shell {
                 }
                 toRead = 0;
             } catch (IOException e) {
-                ShellLogger.e(this, "IOException", e);
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, "IOException", e);
+                }
             } finally {
                 closeStreams();
 
-                ShellLogger.v(this, "Shell destroyed");
+                if (ShellLogger.DEBUG) {
+                    Log.v(TAG, "Shell destroyed");
+                }
                 isClosed = true;
             }
         }
@@ -370,7 +396,9 @@ public abstract class Shell {
                 command.doOutput(command.id, line);
             }
         } catch (Exception e) {
-            ShellLogger.e(this, "Error when processing errors. Can you see the irony?", e);
+            if (ShellLogger.DEBUG) {
+                Log.e(TAG, "Error while processing errors. Can you see the irony?", e);
+            }
         }
     }
 
@@ -444,7 +472,9 @@ public abstract class Shell {
                 try {
                     pid = (Integer) field.get(shell.process);
                 } catch (IllegalAccessException iae) {
-                    ShellLogger.e(this, "IllegalAccessException", iae);
+                    if (ShellLogger.DEBUG) {
+                        Log.e(TAG, "IllegalAccessException", iae);
+                    }
                     pid = -1;
                 }
             } else {
@@ -452,25 +482,25 @@ public abstract class Shell {
             }
 
             if (pid == -1) {
-                ShellLogger.e(this, "could not get pid via reflection!");
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, "could not get pid via reflection!");
+                }
                 return;
             }
 
             try {
                 setupOomAdj(pid);
             } catch (Exception e) {
-                ShellLogger.e(this, "Could not set shell oom adj for pid %s!", pid);
-                if (ShellLogger.getEnabled()) {
-                    e.printStackTrace();
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, String.format("Could not set shell oom adj for pid %s!", pid), e);
                 }
             }
 
             try {
                 setupOomScoreAdj(pid);
             } catch (Exception e) {
-                ShellLogger.e(this, "Could not set shell oom score adj for pid %s!", pid);
-                if (ShellLogger.getEnabled()) {
-                    e.printStackTrace();
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, String.format("Could not set shell oom score adj for pid %s!", pid), e);
                 }
             }
         }

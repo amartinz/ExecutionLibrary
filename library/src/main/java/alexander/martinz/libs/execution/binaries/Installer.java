@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -17,7 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import alexander.martinz.libs.execution.IoUtils;
-import alexander.martinz.libs.logger.Logger;
+import alexander.martinz.libs.execution.ShellLogger;
 
 public class Installer {
     private static final String TAG = Installer.class.getSimpleName();
@@ -28,7 +29,9 @@ public class Installer {
 
     public static boolean installBusyBox(@NonNull final Context context) {
         if (binaryExists(context, "busybox")) {
-            Logger.v(TAG, "busybox already installed!");
+            if (ShellLogger.DEBUG) {
+                Log.v(TAG, "busybox already installed!");
+            }
             return false;
         }
         return extractBinary(context, "busybox", KEY_BUSYBOX_VERSION, BUSYBOX_VERSION);
@@ -91,9 +94,8 @@ public class Installer {
                 // we got until here, extraction is successful!
                 extractedBinary = true;
             } catch (IOException ioe) {
-                Logger.e(TAG, "Could not extract %s binary", binary);
-                if (Logger.getEnabled()) {
-                    ioe.printStackTrace();
+                if (ShellLogger.DEBUG) {
+                    Log.e(TAG, String.format("Could not extract %s binary", binary), ioe);
                 }
             } finally {
                 IoUtils.closeQuietly(os);
@@ -102,7 +104,9 @@ public class Installer {
 
             // update binary version if successfully extracted binary
             if (prefs != null && extractedBinary) {
-                Logger.v(TAG, "Successfully extracted %s version \"%s\"", binaryName, versionNew);
+                if (ShellLogger.DEBUG) {
+                    Log.v(TAG, String.format("Successfully extracted %s version \"%s\"", binaryName, versionNew));
+                }
                 prefs.edit().putInt(versionKey, versionNew).apply();
             }
             return extractedBinary;

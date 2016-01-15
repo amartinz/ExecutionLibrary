@@ -1,3 +1,5 @@
 package alexander.martinz.libs.execution;
 
-public class ShellLogger extends alexander.martinz.libs.logger.Logger { }
+public class ShellLogger {
+    public static boolean DEBUG;
+}

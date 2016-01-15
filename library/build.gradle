@@ -20,5 +20,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile 'com.android.support:support-annotations:23.1.1'
-    compile 'com.github.Evisceration:logger:1.0.5'
 }
