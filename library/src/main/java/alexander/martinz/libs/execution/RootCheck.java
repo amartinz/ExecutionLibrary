@@ -60,7 +60,7 @@ public class RootCheck {
             return true;
         }
         if (ShellLogger.DEBUG) {
-            Log.d(TAG, "no binary found, trying with hit and miss");
+            Log.d(TAG, "no su binary found, trying with hit and miss");
         }
 
         // fire and forget id, just for fun

@@ -8,10 +8,63 @@ import android.util.Log;
 
 import java.io.File;
 
+import alexander.martinz.libs.execution.RootShell;
+import alexander.martinz.libs.execution.ShellHelper;
 import alexander.martinz.libs.execution.ShellLogger;
+import alexander.martinz.libs.execution.ShellManager;
 
 public class BusyBox {
     private static final String TAG = BusyBox.class.getSimpleName();
+
+    private static final String[] PATH_BUSYBOX = new String[]{
+            "/system/bin/busybox", "/system/xbin/busybox"
+    };
+
+    private static Boolean sHasBusybox= null;
+
+    public static boolean isAvailable() {
+        return isAvailable(false);
+    }
+
+    public static boolean isAvailable(boolean forceCheck) {
+        if (!forceCheck && sHasBusybox != null) {
+            return sHasBusybox;
+        }
+
+        final String busyboxPath = getBusyboxPath();
+        if (!TextUtils.isEmpty(busyboxPath)) {
+            if (ShellLogger.DEBUG) {
+                Log.d(TAG, String.format("Found busybox path: %s", busyboxPath));
+            }
+            sHasBusybox = true;
+            return true;
+        }
+        if (ShellLogger.DEBUG) {
+            Log.d(TAG, "no busybox binary found, trying with hit and miss");
+        }
+
+        final String busyboxLocation = ShellHelper.findBinary("busybox");
+        if (!TextUtils.isEmpty(busyboxLocation)) {
+            if (ShellLogger.DEBUG) {
+                Log.d(TAG, String.format("Found busybox path: %s", busyboxLocation));
+            }
+            sHasBusybox = true;
+            return true;
+        }
+        return sHasBusybox;
+    }
+
+    /**
+     * @return The path of the busybox binary or null if none found
+     */
+    @Nullable public static String getBusyboxPath() {
+        for (final String path : PATH_BUSYBOX) {
+            if (new File(path).exists()) {
+                return path;
+            }
+        }
+        return null;
+    }
 
     @Nullable public static String callBusyBoxApplet(@NonNull Context context, @NonNull String applet, @Nullable String args) {
         final File fileDir = context.getFilesDir();
