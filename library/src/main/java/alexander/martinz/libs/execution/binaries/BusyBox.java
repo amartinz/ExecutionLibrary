@@ -1,6 +1,8 @@
 package alexander.martinz.libs.execution.binaries;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -8,19 +10,20 @@ import android.util.Log;
 
 import java.io.File;
 
-import alexander.martinz.libs.execution.RootShell;
 import alexander.martinz.libs.execution.ShellHelper;
 import alexander.martinz.libs.execution.ShellLogger;
-import alexander.martinz.libs.execution.ShellManager;
 
 public class BusyBox {
     private static final String TAG = BusyBox.class.getSimpleName();
+
+    // my favorite
+    private static final String PLAY_STORE_BUSYBOX = "https://play.google.com/store/apps/details?id=stericson.busybox";
 
     private static final String[] PATH_BUSYBOX = new String[]{
             "/system/bin/busybox", "/system/xbin/busybox"
     };
 
-    private static Boolean sHasBusybox= null;
+    private static Boolean sHasBusybox = null;
 
     public static boolean isAvailable() {
         return isAvailable(false);
@@ -92,5 +95,13 @@ public class BusyBox {
             Log.v(TAG, String.format("Calling applet with args -> %s", cmd));
         }
         return cmd;
+    }
+
+    public static void offerBusyBox(@NonNull Context context) {
+        final Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_BUSYBOX));
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(i);
+        } catch (Exception ignored) { }
     }
 }
