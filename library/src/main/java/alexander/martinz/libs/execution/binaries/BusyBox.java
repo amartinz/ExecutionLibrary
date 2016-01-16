@@ -94,7 +94,7 @@ public class BusyBox {
 
         cmd = String.format("%s %s", cmd, args);
         if (ShellLogger.DEBUG) {
-            Log.v(TAG, String.format("Calling applet with args -> %s", cmd));
+            Log.v(TAG, String.format("Calling applet \"%s\" with args -> %s", applet, args));
         }
         return cmd;
     }
@@ -127,7 +127,7 @@ public class BusyBox {
 
         cmd = String.format("%s %s", cmd, args);
         if (ShellLogger.DEBUG) {
-            Log.v(TAG, String.format("Calling applet with args -> %s", cmd));
+            Log.v(TAG, String.format("Calling applet \"%s\" with args -> %s", applet, args));
         }
         return cmd;
     }
