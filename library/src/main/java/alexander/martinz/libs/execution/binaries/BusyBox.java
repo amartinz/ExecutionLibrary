@@ -24,6 +24,7 @@ public class BusyBox {
     };
 
     private static Boolean sHasBusybox = null;
+    private static String sBusyBoxPath = null;
 
     public static boolean isAvailable() {
         return isAvailable(false);
@@ -40,6 +41,7 @@ public class BusyBox {
                 Log.d(TAG, String.format("Found busybox path: %s", busyboxPath));
             }
             sHasBusybox = true;
+            sBusyBoxPath = busyboxPath;
             return true;
         }
         if (ShellLogger.DEBUG) {
@@ -52,9 +54,15 @@ public class BusyBox {
                 Log.d(TAG, String.format("Found busybox path: %s", busyboxLocation));
             }
             sHasBusybox = true;
+            sBusyBoxPath = busyboxLocation.endsWith("/")
+                    ? String.format("%s%s", busyboxLocation, "busybox")
+                    : String.format("%s/%s", busyboxLocation, "busybox");
             return true;
         }
-        return sHasBusybox;
+
+        sHasBusybox = false;
+        sBusyBoxPath = null;
+        return false;
     }
 
     /**
@@ -69,7 +77,34 @@ public class BusyBox {
         return null;
     }
 
-    @Nullable public static String callBusyBoxApplet(@NonNull Context context, @NonNull String applet, @Nullable String args) {
+    @Nullable public static String callBusyBoxApplet(@NonNull String applet) {
+        return callBusyBoxApplet(applet, null);
+    }
+
+    @Nullable public static String callBusyBoxApplet(@NonNull String applet, @Nullable String args) {
+        if (!isAvailable() || TextUtils.isEmpty(sBusyBoxPath)) {
+            return null;
+        }
+
+        String cmd = String.format("%s %s", sBusyBoxPath, applet);
+        if (TextUtils.isEmpty(args)) {
+            Log.v(TAG, String.format("No args specified, returning -> %s", cmd));
+            return cmd;
+        }
+
+        cmd = String.format("%s %s", cmd, args);
+        if (ShellLogger.DEBUG) {
+            Log.v(TAG, String.format("Calling applet with args -> %s", cmd));
+        }
+        return cmd;
+    }
+
+    @Nullable public static String callBusyBoxAppletInternal(@NonNull Context context, @NonNull String applet) {
+        return callBusyBoxAppletInternal(context, applet, null);
+    }
+
+    @Nullable
+    public static String callBusyBoxAppletInternal(@NonNull Context context, @NonNull String applet, @Nullable String args) {
         final File fileDir = context.getFilesDir();
         if (!fileDir.exists()) {
             if (ShellLogger.DEBUG) {
@@ -86,7 +121,7 @@ public class BusyBox {
 
         String cmd = String.format("%s %s", busybox.getAbsolutePath(), applet);
         if (TextUtils.isEmpty(args)) {
-            Log.e(TAG, String.format("No args specified, returning -> %s", cmd));
+            Log.v(TAG, String.format("No args specified, returning -> %s", cmd));
             return cmd;
         }
 
