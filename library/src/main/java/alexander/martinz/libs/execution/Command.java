@@ -1,7 +1,6 @@
 package alexander.martinz.libs.execution;
 
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -56,10 +55,18 @@ public class Command implements CommandListener {
     }
 
     public Command waitFor() {
-        while (!isFinished) {
-            try {
-                Thread.sleep(3);
-            } catch (Exception ignored) { }
+        while (!isFinished()) {
+            synchronized (this) {
+                try {
+                    wait(timeout);
+                } catch (Exception ignored) { }
+            }
+
+            if (!isFinished() && !isExecuting()) {
+                if (ShellLogger.RAMPAGE) {
+                    throw new RuntimeException("Fuck off");
+                }
+            }
         }
         return this;
     }
@@ -132,7 +139,7 @@ public class Command implements CommandListener {
     }
 
     protected final void commandFinished() {
-        if (!isTerminated) {
+        if (!isTerminated()) {
             synchronized (this) {
                 onCommandCompleted(id, exitCode);
 
@@ -213,14 +220,14 @@ public class Command implements CommandListener {
                 return;
             }
 
-            while (!isFinished) {
+            while (!isFinished()) {
                 synchronized (Command.this) {
                     try {
                         Command.this.wait(timeout);
                     } catch (InterruptedException ignored) { }
                 }
 
-                if (!isFinished) {
+                if (!isFinished()) {
                     terminate("Timeout exception");
                 }
             }

@@ -28,9 +28,9 @@ public abstract class Shell {
 
     public boolean isRoot;
 
-    public boolean isCleaning;
-    public boolean isClosed;
-    public boolean isExecuting;
+    private boolean isCleaning;
+    private boolean isClosed;
+    private boolean isExecuting;
 
     public String error;
 
@@ -112,12 +112,24 @@ public abstract class Shell {
         }
     }
 
+    public synchronized boolean isCleaning() {
+        return isCleaning;
+    }
+
+    public synchronized boolean isClosed() {
+        return isClosed;
+    }
+
+    public synchronized boolean isExecuting() {
+        return isExecuting;
+    }
+
     public Command add(final Command command) {
         if (shouldClose) {
             throw new IllegalStateException("Unable to add commands to a closed shell");
         }
 
-        while (isCleaning) {
+        while (isCleaning()) {
             // wait until we are done cleaning
         }
         command.resetCommand();
@@ -148,18 +160,19 @@ public abstract class Shell {
     }
 
     protected void notifyThreads() {
-        AsyncTask.execute(new Runnable() {
+        final Thread t = new Thread(new Runnable() {
             @Override public void run() {
                 synchronized (commands) {
                     commands.notifyAll();
                 }
             }
         });
+        t.start();
     }
 
     public void close() {
         int count = 0;
-        while (isExecuting) {
+        while (isExecuting()) {
             if (ShellLogger.DEBUG) {
                 Log.v(TAG, "Waiting on shell to finish executing before closing...");
             }
@@ -334,7 +347,7 @@ public abstract class Shell {
 
                         synchronized (this) {
                             try {
-                                this.wait(2000);
+                                this.wait(shellTimeout);
                             } catch (Exception ignored) { }
                         }
                     }
@@ -502,15 +515,14 @@ public abstract class Shell {
         }
 
         private void setupOomAdj(final int pid) throws Exception {
-            shell.outputStream.write("(echo -17 > /proc/" + pid + "/oom_adj) &> /dev/null\n");
-            shell.outputStream.write("(echo -17 > /proc/$$/oom_adj) &> /dev/null\n");
+            shell.outputStream.write("echo -17 > /proc/" + pid + "/oom_adj &> /dev/null\n");
+            shell.outputStream.write("echo -17 > /proc/$$/oom_adj &> /dev/null\n");
             shell.outputStream.flush();
         }
 
         private void setupOomScoreAdj(final int pid) throws Exception {
-            shell.outputStream
-                    .write("(echo -1000 > /proc/" + pid + "/oom_score_adj) &> /dev/null\n");
-            shell.outputStream.write("(echo -1000 > /proc/$$/oom_score_adj) &> /dev/null\n");
+            shell.outputStream.write("echo -1000 > /proc/" + pid + "/oom_score_adj &> /dev/null\n");
+            shell.outputStream.write("echo -1000 > /proc/$$/oom_score_adj &> /dev/null\n");
             shell.outputStream.flush();
         }
     }

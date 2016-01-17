@@ -38,12 +38,12 @@ public class ShellHelper {
         if (searchPaths == null) {
             searchPaths = getPath();
         }
+        searchPaths = ensureListFormat(searchPaths);
 
         for (final String searchPath : searchPaths) {
             final File expectedBinary = new File(searchPath, binaryName);
             if (expectedBinary.exists()) {
-                final String path = (searchPath.endsWith("/") ? searchPath : String.format("%s/", searchPath));
-                foundLocations.add(path);
+                foundLocations.add(searchPath);
             }
         }
 
@@ -51,15 +51,11 @@ public class ShellHelper {
             return foundLocations;
         }
 
-        for (final String searchPath : searchPaths) {
-            final String path = (searchPath.endsWith("/") ? searchPath : String.format("%s/", searchPath));
-            final String binary = String.format("%s%s", path, binaryName);
-            final String cmdResult = RootShell.fireAndBlockString(String.format("stat %s", binary));
-
-            if (!TextUtils.isEmpty(cmdResult) && cmdResult.contains("File:") && cmdResult.contains(binaryName)) {
-                foundLocations.add(path);
-            }
+        final String busybox = RootShell.fireAndBlockString("which busybox");
+        if (!TextUtils.isEmpty(busybox) && busybox.endsWith("/busybox")) {
+            foundLocations.add(0, busybox.trim());
         }
+
         return foundLocations;
     }
 
@@ -69,5 +65,17 @@ public class ShellHelper {
             return Collections.EMPTY_LIST;
         }
         return Arrays.asList(path.split(":"));
+    }
+
+    @NonNull private static List<String> ensureListFormat(@NonNull final List<String> listToFormat) {
+        final ArrayList<String> formattedList = new ArrayList<>();
+
+        // ensure that all our paths end with /
+        for (final String searchPath : listToFormat) {
+            final String path = (searchPath.endsWith("/") ? searchPath : String.format("%s/", searchPath));
+            formattedList.add(path);
+        }
+
+        return formattedList;
     }
 }
