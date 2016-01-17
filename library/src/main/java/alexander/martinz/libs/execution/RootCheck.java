@@ -16,7 +16,9 @@
  */
 package alexander.martinz.libs.execution;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -32,6 +34,7 @@ public class RootCheck {
     };
 
     private static Boolean sIsRooted = null;
+    private static String sSuVersion = null;
 
     /**
      * @return true if the device is rooted, false if not
@@ -43,11 +46,11 @@ public class RootCheck {
     }
 
     /**
-     * @param forceRootCheck Whether to use the cached result or force a new check
+     * @param forceCheck Whether to use the cached result or force a new check
      * @return true if the device is rooted, false if not
      */
-    public static boolean isRooted(boolean forceRootCheck) {
-        if (!forceRootCheck && sIsRooted != null) {
+    public static boolean isRooted(boolean forceCheck) {
+        if (!forceCheck && sIsRooted != null) {
             return sIsRooted;
         }
 
@@ -72,6 +75,19 @@ public class RootCheck {
             Log.d(TAG, String.format("is rooted: %s", sIsRooted));
         }
         return sIsRooted;
+    }
+
+    @WorkerThread @NonNull public static String getSuVersion() {
+        return getSuVersion(false);
+    }
+
+    @WorkerThread @NonNull public static String getSuVersion(boolean forceCheck) {
+        if (forceCheck || sSuVersion == null) {
+            final boolean hasRoot = isRooted();
+            final String version = hasRoot ? RootShell.fireAndBlockString("su -v") : "-";
+            sSuVersion = TextUtils.isEmpty(version) ? "-" : version;
+        }
+        return sSuVersion;
     }
 
     /**
