@@ -51,7 +51,10 @@ public class ShellHelper {
             return foundLocations;
         }
 
-        final String busybox = RootShell.fireAndBlockString("which busybox");
+
+        final String busybox = RootCheck.isRooted()
+                ? RootShell.fireAndBlockString("which busybox")
+                : NormalShell.fireAndBlockString("which busybox");
         if (!TextUtils.isEmpty(busybox) && busybox.endsWith("/busybox")) {
             foundLocations.add(0, busybox.trim());
         }

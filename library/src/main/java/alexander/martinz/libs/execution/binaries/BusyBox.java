@@ -23,6 +23,10 @@ public class BusyBox {
             "/system/bin/busybox", "/system/xbin/busybox"
     };
 
+    private static final String[] PATH_TOYBOX = new String[]{
+            "/system/bin/toybox", "/system/xbin/toybox"
+    };
+
     private static Boolean sHasBusybox = null;
     private static String sBusyBoxPath = null;
 
@@ -44,8 +48,23 @@ public class BusyBox {
             sBusyBoxPath = busyboxPath;
             return true;
         }
+
         if (ShellLogger.DEBUG) {
-            Log.d(TAG, "no busybox binary found, trying with hit and miss");
+            Log.d(TAG, "no busybox binary found, trying with toybox");
+        }
+
+        final String toyboxPath = getToyboxPath();
+        if (!TextUtils.isEmpty(toyboxPath)) {
+            if (ShellLogger.DEBUG) {
+                Log.d(TAG, String.format("Found toybox path: %s", toyboxPath));
+            }
+            sHasBusybox = true;
+            sBusyBoxPath = toyboxPath;
+            return true;
+        }
+
+        if (ShellLogger.DEBUG) {
+            Log.d(TAG, "no busybox nor toybox binary found, trying with hit and miss");
         }
 
         final String busyboxLocation = ShellHelper.findBinary("busybox");
@@ -60,9 +79,33 @@ public class BusyBox {
             return true;
         }
 
+        if (ShellLogger.DEBUG) {
+            Log.d(TAG, "no busybox via hit and miss found, come on toybox...");
+        }
+
+        final String toyboxLocation = ShellHelper.findBinary("toybox");
+        if (!TextUtils.isEmpty(toyboxLocation)) {
+            if (ShellLogger.DEBUG) {
+                Log.d(TAG, String.format("Found toybox path: %s", toyboxLocation));
+            }
+            sHasBusybox = true;
+            sBusyBoxPath = toyboxLocation.endsWith("/")
+                    ? String.format("%s%s", toyboxLocation, "toybox")
+                    : String.format("%s/%s", toyboxLocation, "toybox");
+            return true;
+        }
+
+        if (ShellLogger.DEBUG) {
+            Log.d(TAG, "alright, i give up. no busybox or toybox detected.");
+        }
+
         sHasBusybox = false;
         sBusyBoxPath = null;
         return false;
+    }
+
+    public static boolean isActuallyToybox() {
+        return !TextUtils.isEmpty(sBusyBoxPath) && sBusyBoxPath.endsWith("toybox");
     }
 
     /**
@@ -70,6 +113,18 @@ public class BusyBox {
      */
     @Nullable public static String getBusyboxPath() {
         for (final String path : PATH_BUSYBOX) {
+            if (new File(path).exists()) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return The path of the toybox binary or null if none found
+     */
+    @Nullable public static String getToyboxPath() {
+        for (final String path : PATH_TOYBOX) {
             if (new File(path).exists()) {
                 return path;
             }
