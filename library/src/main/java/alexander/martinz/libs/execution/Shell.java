@@ -515,14 +515,14 @@ public abstract class Shell {
         }
 
         private void setupOomAdj(final int pid) throws Exception {
-            shell.outputStream.write("echo -17 > /proc/" + pid + "/oom_adj &> /dev/null\n");
-            shell.outputStream.write("echo -17 > /proc/$$/oom_adj &> /dev/null\n");
+            shell.outputStream.write("(echo -17 > /proc/" + pid + "/oom_adj) &> /dev/null\n");
+            shell.outputStream.write("(echo -17 > /proc/$$/oom_adj) &> /dev/null\n");
             shell.outputStream.flush();
         }
 
         private void setupOomScoreAdj(final int pid) throws Exception {
-            shell.outputStream.write("echo -1000 > /proc/" + pid + "/oom_score_adj &> /dev/null\n");
-            shell.outputStream.write("echo -1000 > /proc/$$/oom_score_adj &> /dev/null\n");
+            shell.outputStream.write("(echo -1000 > /proc/" + pid + "/oom_score_adj) &> /dev/null\n");
+            shell.outputStream.write("(echo -1000 > /proc/$$/oom_score_adj) &> /dev/null\n");
             shell.outputStream.flush();
         }
     }
