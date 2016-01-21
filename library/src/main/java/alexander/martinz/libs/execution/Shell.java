@@ -116,6 +116,10 @@ public abstract class Shell {
         return isCleaning;
     }
 
+    public synchronized boolean shouldClose() {
+        return shouldClose;
+    }
+
     public synchronized boolean isClosed() {
         return isClosed;
     }
