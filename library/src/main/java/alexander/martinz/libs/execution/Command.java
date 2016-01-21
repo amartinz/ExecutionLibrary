@@ -64,7 +64,7 @@ public class Command implements CommandListener {
 
             if (!isFinished() && !isExecuting()) {
                 if (ShellLogger.RAMPAGE) {
-                    throw new RuntimeException("Fuck off");
+                    throw new RuntimeException("Something is really wrong");
                 }
             }
         }
