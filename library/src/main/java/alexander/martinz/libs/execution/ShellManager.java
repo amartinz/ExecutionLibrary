@@ -113,7 +113,9 @@ public class ShellManager {
                 final Iterator<RootShell> rootShellIterator = rootShells.iterator();
                 while (rootShellIterator.hasNext()) {
                     final RootShell rootShell = rootShellIterator.next();
-                    rootShell.close();
+                    if (rootShell != null) {
+                        rootShell.close();
+                    }
                     rootShellIterator.remove();
                 }
                 rootShells.clear();
@@ -127,7 +129,9 @@ public class ShellManager {
                 final Iterator<NormalShell> normalShellIterator = normalShells.iterator();
                 while (normalShellIterator.hasNext()) {
                     final NormalShell normalShell = normalShellIterator.next();
-                    normalShell.close();
+                    if (normalShell != null) {
+                        normalShell.close();
+                    }
                     normalShellIterator.remove();
                 }
                 normalShells.clear();
