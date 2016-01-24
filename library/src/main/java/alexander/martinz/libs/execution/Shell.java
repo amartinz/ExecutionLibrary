@@ -1,6 +1,5 @@
 package alexander.martinz.libs.execution;
 
-import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -194,7 +193,7 @@ public abstract class Shell {
         }
 
         if (ShellLogger.DEBUG) {
-            Log.v(TAG, "Shell closed!");
+            Log.v(TAG, String.format("Shell closed! - %s", this));
         }
     }
 
@@ -266,9 +265,6 @@ public abstract class Shell {
                         isExecuting = false;
                         outputStream.write("\nexit 0\n");
                         outputStream.flush();
-                        if (ShellLogger.DEBUG) {
-                            Log.v(TAG, "Closing shell");
-                        }
                         return;
                     }
                 }
@@ -390,10 +386,6 @@ public abstract class Shell {
                 }
             } finally {
                 closeStreams();
-
-                if (ShellLogger.DEBUG) {
-                    Log.v(TAG, "Shell destroyed");
-                }
                 isClosed = true;
             }
         }
