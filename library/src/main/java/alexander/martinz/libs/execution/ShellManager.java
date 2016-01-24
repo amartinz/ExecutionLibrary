@@ -18,15 +18,11 @@ public class ShellManager {
 
     private static ShellManager sInstance;
 
-    private static ArrayList<RootShell> rootShells = new ArrayList<>();
-    private static ArrayList<NormalShell> normalShells = new ArrayList<>();
+    private static final ArrayList<RootShell> rootShells = new ArrayList<>();
+    private static final ArrayList<NormalShell> normalShells = new ArrayList<>();
 
     private ShellManager() {
         cleanupShells();
-    }
-
-    @Deprecated @NonNull public static ShellManager get(@NonNull Context context) {
-        return get();
     }
 
     @NonNull public static ShellManager get() {
@@ -47,15 +43,21 @@ public class ShellManager {
 
     @Nullable public RootShell getRootShell(boolean newShell) {
         RootShell rootShell;
-        if (!newShell && rootShells.size() > 0) {
-            rootShell = rootShells.get(0);
-            if (rootShell != null) {
-                return rootShell;
+
+        synchronized (rootShells) {
+            if (!newShell && rootShells.size() > 0) {
+                rootShell = rootShells.get(0);
+                if (rootShell != null) {
+                    return rootShell;
+                }
             }
         }
 
         rootShell = createRootShell();
-        rootShells.add(rootShell);
+
+        synchronized (rootShells) {
+            rootShells.add(rootShell);
+        }
         return rootShell;
     }
 
@@ -76,15 +78,21 @@ public class ShellManager {
 
     @Nullable public NormalShell getNormalShell(boolean newShell) {
         NormalShell normalShell;
-        if (!newShell && normalShells.size() > 0) {
-            normalShell = normalShells.get(0);
-            if (normalShell != null) {
-                return normalShell;
+
+        synchronized (normalShells) {
+            if (!newShell && normalShells.size() > 0) {
+                normalShell = normalShells.get(0);
+                if (normalShell != null) {
+                    return normalShell;
+                }
             }
         }
 
         normalShell = createNormalShell();
-        normalShells.add(normalShell);
+
+        synchronized (normalShells) {
+            normalShells.add(normalShell);
+        }
         return normalShell;
     }
 
@@ -99,50 +107,52 @@ public class ShellManager {
         return null;
     }
 
-    public synchronized void cleanupRootShells() {
-        if (rootShells == null) {
-            rootShells = new ArrayList<>();
-        }
-        if (rootShells.size() > 0) {
-            final Iterator<RootShell> rootShellIterator = rootShells.iterator();
-            while (rootShellIterator.hasNext()) {
-                final RootShell rootShell = rootShellIterator.next();
-                rootShell.close();
-                rootShellIterator.remove();
+    public void cleanupRootShells() {
+        synchronized (rootShells) {
+            if (rootShells.size() > 0) {
+                final Iterator<RootShell> rootShellIterator = rootShells.iterator();
+                while (rootShellIterator.hasNext()) {
+                    final RootShell rootShell = rootShellIterator.next();
+                    rootShell.close();
+                    rootShellIterator.remove();
+                }
+                rootShells.clear();
             }
-            rootShells.clear();
         }
     }
 
-    public synchronized void cleanupNormalShells() {
-        if (normalShells == null) {
-            normalShells = new ArrayList<>();
-        }
-        if (normalShells.size() > 0) {
-            final Iterator<NormalShell> normalShellIterator = normalShells.iterator();
-            while (normalShellIterator.hasNext()) {
-                final NormalShell normalShell = normalShellIterator.next();
-                normalShell.close();
-                normalShellIterator.remove();
+    public void cleanupNormalShells() {
+        synchronized (normalShells) {
+            if (normalShells.size() > 0) {
+                final Iterator<NormalShell> normalShellIterator = normalShells.iterator();
+                while (normalShellIterator.hasNext()) {
+                    final NormalShell normalShell = normalShellIterator.next();
+                    normalShell.close();
+                    normalShellIterator.remove();
+                }
+                normalShells.clear();
             }
-            normalShells.clear();
         }
     }
 
-    public synchronized int getNormalShellCount() {
-        return normalShells.size();
+    public int getNormalShellCount() {
+        synchronized (normalShells) {
+            return normalShells.size();
+        }
     }
 
-    public synchronized int getRootShellCount() {
-        return rootShells.size();
+    public int getRootShellCount() {
+        synchronized (rootShells) {
+            return rootShells.size();
+        }
     }
 
-    public synchronized void cleanupShells() {
+    public void cleanupShells() {
         cleanupRootShells();
         cleanupNormalShells();
     }
 
-    public synchronized void onDestroy() {
+    public void onDestroy() {
         cleanupShells();
     }
 }
