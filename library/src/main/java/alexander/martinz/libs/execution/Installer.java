@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution.binaries;
+package alexander.martinz.libs.execution;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -16,9 +16,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import alexander.martinz.libs.execution.IoUtils;
-import alexander.martinz.libs.execution.ShellLogger;
 
 public class Installer {
     private static final String TAG = Installer.class.getSimpleName();

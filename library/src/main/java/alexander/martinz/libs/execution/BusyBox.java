@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution.binaries;
+package alexander.martinz.libs.execution;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,9 +9,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
-
-import alexander.martinz.libs.execution.ShellHelper;
-import alexander.martinz.libs.execution.ShellLogger;
 
 public class BusyBox {
     private static final String TAG = BusyBox.class.getSimpleName();

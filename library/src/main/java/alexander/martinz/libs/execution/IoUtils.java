@@ -3,7 +3,7 @@ package alexander.martinz.libs.execution;
 import java.io.Closeable;
 import java.net.Socket;
 
-public class IoUtils {
+/* package */ class IoUtils {
     public static void closeQuietly(final Object o) {
         if (o instanceof Socket) {
             try {

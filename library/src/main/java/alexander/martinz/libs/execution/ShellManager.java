@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeoutException;
 
-import alexander.martinz.libs.execution.binaries.Installer;
 import alexander.martinz.libs.execution.exceptions.RootDeniedException;
 
 public class ShellManager {
@@ -30,6 +29,14 @@ public class ShellManager {
             sInstance = new ShellManager();
         }
         return sInstance;
+    }
+
+    public static void enableDebug(boolean enableDebug) {
+        ShellLogger.DEBUG = enableDebug;
+    }
+
+    public static boolean isDebug() {
+        return ShellLogger.DEBUG;
     }
 
     public ShellManager installBusyBox(@NonNull Context context) {

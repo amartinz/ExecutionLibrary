@@ -1,6 +1,6 @@
 package alexander.martinz.libs.execution;
 
-public class ShellLogger {
+/* package */ class ShellLogger {
     public static boolean DEBUG = false;
     public static boolean RAMPAGE = false;
 }
