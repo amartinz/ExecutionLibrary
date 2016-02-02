@@ -119,8 +119,10 @@ public class RootCheck {
 
     @WorkerThread @NonNull public static String getSuVersion(boolean forceCheck) {
         if (forceCheck || suVersion == null) {
-            final boolean hasRoot = isRooted();
-            final String version = hasRoot ? RootShell.fireAndBlockString("su -v") : "-";
+            String version = isRooted() ? NormalShell.fireAndBlockString("su -v") : "-";
+            if (TextUtils.isEmpty(version)) {
+                version = RootShell.fireAndBlockString("su -v");
+            }
             suVersion = TextUtils.isEmpty(version) ? "-" : version;
         }
         return suVersion;
