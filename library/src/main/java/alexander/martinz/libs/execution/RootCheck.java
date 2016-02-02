@@ -33,8 +33,9 @@ public class RootCheck {
             "/su/bin/su"
     };
 
-    private static Boolean sIsRooted = null;
-    private static String sSuVersion = null;
+    private static Boolean isRooted = null;
+    private static Boolean isRootGranted = null;
+    private static String suVersion = null;
 
     /**
      * @return true if the device is rooted, false if not
@@ -50,8 +51,8 @@ public class RootCheck {
      * @return true if the device is rooted, false if not
      */
     public static boolean isRooted(boolean forceCheck) {
-        if (!forceCheck && sIsRooted != null) {
-            return sIsRooted;
+        if (!forceCheck && isRooted != null) {
+            return isRooted;
         }
 
         final String suPath = getSuPath();
@@ -59,7 +60,7 @@ public class RootCheck {
             if (ShellLogger.DEBUG) {
                 Log.d(TAG, String.format("Found su path: %s", suPath));
             }
-            sIsRooted = true;
+            isRooted = true;
             return true;
         }
         if (ShellLogger.DEBUG) {
@@ -70,11 +71,46 @@ public class RootCheck {
         RootShell.fireAndForget("id");
 
         final RootShell rootShell = ShellManager.get().getRootShell();
-        sIsRooted = (rootShell != null);
+        isRooted = (rootShell != null);
         if (ShellLogger.DEBUG) {
-            Log.d(TAG, String.format("is rooted: %s", sIsRooted));
+            Log.d(TAG, String.format("is rooted: %s", isRooted));
         }
-        return sIsRooted;
+        return isRooted;
+    }
+
+    /**
+     * @return true if the device is rooted and root is granted, false if not
+     * <p/>
+     * The result is cached, for a non cached result, use {@link RootCheck#isRootGranted(boolean)}
+     */
+    @WorkerThread public static boolean isRootGranted() {
+        return isRootGranted(false);
+    }
+
+    /**
+     * @param forceCheck Whether to use the cached result or force a new check
+     * @return true if the device is rooted and root is granted, false if not
+     */
+    @WorkerThread public static boolean isRootGranted(boolean forceCheck) {
+        if (!forceCheck && isRootGranted != null) {
+            return isRootGranted;
+        }
+
+        // no root available means we can not get root granted as well
+        if (!isRooted()) {
+            isRootGranted = false;
+            return false;
+        }
+
+        final String result = RootShell.fireAndBlockString("id");
+        if (TextUtils.isEmpty(result)) {
+            // we did not get any result, means the shell did not work
+            isRootGranted = false;
+            return false;
+        }
+
+        isRootGranted = result.contains("uid=0");
+        return isRootGranted;
     }
 
     @WorkerThread @NonNull public static String getSuVersion() {
@@ -82,12 +118,12 @@ public class RootCheck {
     }
 
     @WorkerThread @NonNull public static String getSuVersion(boolean forceCheck) {
-        if (forceCheck || sSuVersion == null) {
+        if (forceCheck || suVersion == null) {
             final boolean hasRoot = isRooted();
             final String version = hasRoot ? RootShell.fireAndBlockString("su -v") : "-";
-            sSuVersion = TextUtils.isEmpty(version) ? "-" : version;
+            suVersion = TextUtils.isEmpty(version) ? "-" : version;
         }
-        return sSuVersion;
+        return suVersion;
     }
 
     /**
