@@ -5,7 +5,12 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-beta5'
+        try {
+            classpath "com.android.tools.build:gradle:${rootProject.ext.gradleVersion}"
+        } catch (Exception ignored) {
+            classpath "com.android.tools.build:gradle:1.5.0"
+        }
+        classpath 'com.github.dcendents:android-maven-plugin:1.3'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
