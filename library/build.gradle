@@ -23,9 +23,7 @@ android {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
-
-    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:support-annotations:23.2.1'
 }
 
 apply plugin: 'android-maven'
