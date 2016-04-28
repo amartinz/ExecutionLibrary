@@ -25,7 +25,11 @@ public class Installer {
     private static final int BUSYBOX_VERSION = 1;
 
     public static boolean installBusyBox(@NonNull final Context context) {
-        if (binaryExists(context, "busybox")) {
+        return installBusyBox(context, false);
+    }
+
+    public static boolean installBusyBox(@NonNull final Context context, boolean force) {
+        if (!force && binaryExists(context, "busybox")) {
             if (ShellLogger.DEBUG) {
                 Log.v(TAG, "busybox already installed!");
             }
