@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution;
+package at.amartinz.execution;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeoutException;
 
-import alexander.martinz.libs.execution.exceptions.RootDeniedException;
+import at.amartinz.execution.exceptions.RootDeniedException;
 
 public class ShellManager {
     private static final String TAG = ShellManager.class.getSimpleName();

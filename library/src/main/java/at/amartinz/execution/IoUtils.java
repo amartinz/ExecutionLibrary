@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution;
+package at.amartinz.execution;
 
 import java.io.Closeable;
 import java.net.Socket;

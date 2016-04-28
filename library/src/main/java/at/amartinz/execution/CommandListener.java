@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution;
+package at.amartinz.execution;
 
 public interface CommandListener {
     void onCommandCompleted(int id, int exitCode);

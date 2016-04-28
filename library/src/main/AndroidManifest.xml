@@ -1,5 +1,1 @@
-<manifest package="alexander.martinz.libs.execution">
-
-    <application />
-
-</manifest>
+<manifest package="at.amartinz.execution" />

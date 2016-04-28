@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution;
+package at.amartinz.execution;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import alexander.martinz.libs.execution.exceptions.RootDeniedException;
+import at.amartinz.execution.exceptions.RootDeniedException;
 
 public abstract class Shell {
     private static final String TAG = Shell.class.getSimpleName();

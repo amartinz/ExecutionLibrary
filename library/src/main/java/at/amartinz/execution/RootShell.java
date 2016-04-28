@@ -1,4 +1,4 @@
-package alexander.martinz.libs.execution;
+package at.amartinz.execution;
 
 import android.support.annotation.Nullable;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import alexander.martinz.libs.execution.exceptions.RootDeniedException;
+import at.amartinz.execution.exceptions.RootDeniedException;
 
 public class RootShell extends Shell {
     protected RootShell() throws IOException, TimeoutException, RootDeniedException {
