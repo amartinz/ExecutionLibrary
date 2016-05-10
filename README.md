@@ -3,17 +3,7 @@
 TODO: write a proper readme
 
 ## Download
-Add JitPack.io
-
-    allprojects {
-        repositories {
-                maven { url "https://jitpack.io" }
-            }
-    }
-
-Add dependency
-
-    compile 'com.github.Evisceration:ExecutionLibrary:-SNAPSHOT'
+    compile 'at.amartinz:execution:1.0.0'
 
 ## License
     The MIT License

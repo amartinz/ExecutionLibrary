@@ -46,7 +46,7 @@ public class RootCheck {
 
     /**
      * @return true if the device is rooted, false if not
-     * <p/>
+     * <br>
      * The result is cached, for a non cached result, use {@link RootCheck#isRooted(boolean)}
      */
     public static boolean isRooted() {
@@ -87,7 +87,7 @@ public class RootCheck {
 
     /**
      * @return true if the device is rooted and root is granted, false if not
-     * <p/>
+     * <br>
      * The result is cached, for a non cached result, use {@link RootCheck#isRootGranted(boolean)}
      */
     @WorkerThread public static boolean isRootGranted() {
