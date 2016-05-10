@@ -8,7 +8,7 @@ buildscript {
         try {
             classpath "com.android.tools.build:gradle:${rootProject.ext.gradleVersion}"
         } catch (Exception ignored) {
-            classpath "com.android.tools.build:gradle:2.0.0"
+            classpath "com.android.tools.build:gradle:2.1.0"
         }
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
 
