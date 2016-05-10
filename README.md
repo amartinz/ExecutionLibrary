@@ -1,5 +1,7 @@
 # ExecutionLibrary
 
+[ ![Download](https://api.bintray.com/packages/evisceration/maven/execution-library/images/download.svg) ](https://bintray.com/evisceration/maven/execution-library/_latestVersion)
+
 TODO: write a proper readme
 
 ## Download
