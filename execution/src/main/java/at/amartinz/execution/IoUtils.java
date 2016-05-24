@@ -25,7 +25,11 @@
 package at.amartinz.execution;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
+
+import okio.BufferedSource;
 
 /* package */ class IoUtils {
     public static void closeQuietly(final Object o) {
@@ -38,5 +42,17 @@ import java.net.Socket;
                 ((Closeable) o).close();
             } catch (Exception ignored) { }
         }
+    }
+
+    public static boolean isReady(final Object o) {
+        if (o instanceof BufferedSource) {
+            final InputStream inputStream = ((BufferedSource) o).inputStream();
+            if (inputStream != null) {
+                try {
+                    return inputStream.available() > 0;
+                } catch (IOException ignored) { }
+            }
+        }
+        return false;
     }
 }

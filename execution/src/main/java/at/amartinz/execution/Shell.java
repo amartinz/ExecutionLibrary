@@ -27,24 +27,23 @@ package at.amartinz.execution;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import at.amartinz.execution.exceptions.RootDeniedException;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.Okio;
 
 public abstract class Shell {
     private static final String TAG = Shell.class.getSimpleName();
 
     public static final int DEFAULT_TIMEOUT = 15000;
 
-    private static final String ENCODING = "UTF-8";
     private static final String TOKEN = "Y#*N^W^T@#@G";
 
     public int shellTimeout = DEFAULT_TIMEOUT;
@@ -59,13 +58,10 @@ public abstract class Shell {
 
     private final Process process;
 
-    private final InputStreamReader inputStreamReader;
-    private final BufferedReader inputStream;
+    private final BufferedSource bufferedSourceInput;
+    private final BufferedSource bufferedSourceError;
 
-    private final InputStreamReader errorStreamReader;
-    private final BufferedReader errorStream;
-
-    private final OutputStreamWriter outputStream;
+    private final BufferedSink bufferedSinkOutput;
 
     private boolean shouldClose;
 
@@ -82,13 +78,9 @@ public abstract class Shell {
         final String cmd = (isRoot ? "su" : "/system/bin/sh");
         this.process = Runtime.getRuntime().exec(cmd);
 
-        this.inputStreamReader = new InputStreamReader(this.process.getInputStream(), ENCODING);
-        this.inputStream = new BufferedReader(inputStreamReader);
-
-        this.errorStreamReader = new InputStreamReader(this.process.getErrorStream(), ENCODING);
-        this.errorStream = new BufferedReader(errorStreamReader);
-
-        this.outputStream = new OutputStreamWriter(this.process.getOutputStream(), ENCODING);
+        this.bufferedSourceInput = Okio.buffer(Okio.source(process.getInputStream()));
+        this.bufferedSourceError = Okio.buffer(Okio.source(process.getErrorStream()));
+        this.bufferedSinkOutput = Okio.buffer(Okio.sink(process.getOutputStream()));
 
         final Worker worker = new Worker(this);
         worker.start();
@@ -222,13 +214,9 @@ public abstract class Shell {
     }
 
     private void closeStreams() {
-        IoUtils.closeQuietly(this.inputStream);
-        IoUtils.closeQuietly(this.inputStreamReader);
-
-        IoUtils.closeQuietly(this.errorStream);
-        IoUtils.closeQuietly(this.errorStreamReader);
-
-        IoUtils.closeQuietly(this.outputStream);
+        IoUtils.closeQuietly(this.bufferedSourceInput);
+        IoUtils.closeQuietly(this.bufferedSourceError);
+        IoUtils.closeQuietly(this.bufferedSinkOutput);
     }
 
     private synchronized void cleanupCommands() {
@@ -277,18 +265,18 @@ public abstract class Shell {
                             if (TextUtils.isEmpty(cmdToExecute)) {
                                 continue;
                             }
-                            outputStream.write(cmdToExecute);
+                            bufferedSinkOutput.writeUtf8(cmdToExecute);
                         }
 
                         final String line = String.format("\necho %s %s $?\n", TOKEN, totalExecuted);
-                        outputStream.write(line);
-                        outputStream.flush();
+                        bufferedSinkOutput.writeUtf8(line);
+                        bufferedSinkOutput.flush();
                         toWrite++;
                         totalExecuted++;
                     } else if (shouldClose) {
                         isExecuting = false;
-                        outputStream.write("\nexit 0\n");
-                        outputStream.flush();
+                        bufferedSinkOutput.writeUtf8("\nexit 0\n");
+                        bufferedSinkOutput.flush();
                         return;
                     }
                 }
@@ -309,8 +297,8 @@ public abstract class Shell {
 
             try {
                 //as long as there is something to read, we will keep reading.
-                while (!shouldClose || inputStream.ready() || toRead < commands.size()) {
-                    String outputLine = inputStream.readLine();
+                while (!shouldClose || IoUtils.isReady(bufferedSourceInput) || toRead < commands.size()) {
+                    String outputLine = bufferedSourceInput.readUtf8Line();
 
                     // EOF, shell closed?
                     if (outputLine == null) {
@@ -417,8 +405,8 @@ public abstract class Shell {
 
     public void processErrors(Command command) {
         try {
-            while (errorStream.ready() && command != null) {
-                final String line = errorStream.readLine();
+            while (command != null && IoUtils.isReady(bufferedSourceError)) {
+                final String line = bufferedSourceError.readUtf8Line();
                 if (line == null) {
                     // EOF, shell closed?
                     break;
@@ -449,12 +437,12 @@ public abstract class Shell {
 
         @Override public void run() {
             try {
-                shell.outputStream.write(OPENING);
-                shell.outputStream.flush();
+                shell.bufferedSinkOutput.writeUtf8(OPENING);
+                shell.bufferedSinkOutput.flush();
 
                 // Check if we get "Opening" returned to check if we have properly opened a shell
                 while (true) {
-                    final String line = shell.inputStream.readLine();
+                    final String line = shell.bufferedSourceInput.readUtf8Line();
                     if (line == null) {
                         // we are done and still did not get our "Opening" so something is fishy
                         throw new EOFException();
@@ -535,15 +523,15 @@ public abstract class Shell {
         }
 
         private void setupOomAdj(final int pid) throws Exception {
-            shell.outputStream.write("(echo -17 > /proc/" + pid + "/oom_adj) &> /dev/null\n");
-            shell.outputStream.write("(echo -17 > /proc/$$/oom_adj) &> /dev/null\n");
-            shell.outputStream.flush();
+            shell.bufferedSinkOutput.writeUtf8("(echo -17 > /proc/" + pid + "/oom_adj) &> /dev/null\n");
+            shell.bufferedSinkOutput.writeUtf8("(echo -17 > /proc/$$/oom_adj) &> /dev/null\n");
+            shell.bufferedSinkOutput.flush();
         }
 
         private void setupOomScoreAdj(final int pid) throws Exception {
-            shell.outputStream.write("(echo -1000 > /proc/" + pid + "/oom_score_adj) &> /dev/null\n");
-            shell.outputStream.write("(echo -1000 > /proc/$$/oom_score_adj) &> /dev/null\n");
-            shell.outputStream.flush();
+            shell.bufferedSinkOutput.writeUtf8("(echo -1000 > /proc/" + pid + "/oom_score_adj) &> /dev/null\n");
+            shell.bufferedSinkOutput.writeUtf8("(echo -1000 > /proc/$$/oom_score_adj) &> /dev/null\n");
+            shell.bufferedSinkOutput.flush();
         }
     }
 }
