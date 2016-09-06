@@ -2,7 +2,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 
 def libraryGroupId = 'at.amartinz'
 def libraryArtifactId = 'execution'
-def libraryVersion = '1.0.0'
+def libraryVersion = '1.0.1'
 
 group libraryGroupId
 

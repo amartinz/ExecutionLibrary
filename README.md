@@ -5,7 +5,7 @@
 TODO: write a proper readme
 
 ## Download
-    compile 'at.amartinz:execution:1.0.0'
+    compile 'at.amartinz:execution:1.0.1'
 
 ## License
     The MIT License
