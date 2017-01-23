@@ -3,9 +3,9 @@
 buildscript {
     ext {
         targetSdk = 25
-        buildTools = '25.0.0'
+        buildTools = '25.0.2'
 
-        supportLibVersion = '25.0.1'
+        supportLibVersion = '25.1.0'
     }
     repositories {
         jcenter()
@@ -14,7 +14,7 @@ buildscript {
         try {
             classpath "com.android.tools.build:gradle:${rootProject.ext.gradleVersion}"
         } catch (Exception ignored) {
-            classpath "com.android.tools.build:gradle:2.2.0"
+            classpath "com.android.tools.build:gradle:2.3.0-beta2"
         }
 
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
@@ -32,7 +32,7 @@ allprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.2.1'
+    gradleVersion = '3.3'
     distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 
