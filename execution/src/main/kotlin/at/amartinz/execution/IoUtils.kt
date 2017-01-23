@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2016 Alexander Martinz
+ * Copyright (c) 2016 - 2017 Alexander Martinz <alex@amartinz.at>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,19 @@
  * THE SOFTWARE.
  */
 
-package at.amartinz.execution;
+package at.amartinz.execution
 
-/* package */ class ShellLogger {
-    public static boolean DEBUG = false;
-    public static boolean RAMPAGE = false;
+import java.io.Closeable
+import java.net.Socket
+
+fun Closeable?.closeQuietly() {
+    try {
+        this?.close()
+    } catch (ignored: Exception) { }
+}
+
+fun Socket?.closeQuietly() {
+    try {
+        this?.close()
+    } catch (ignored: Exception) { }
 }

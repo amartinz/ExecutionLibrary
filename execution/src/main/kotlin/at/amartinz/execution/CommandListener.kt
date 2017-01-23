@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2016 Alexander Martinz
+ * Copyright (c) 2016 - 2017 Alexander Martinz <alex@amartinz.at>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,10 @@
  * THE SOFTWARE.
  */
 
-package at.amartinz.execution.exceptions;
+package at.amartinz.execution
 
-public class RootDeniedException extends Exception {
-    public RootDeniedException(String error) {
-        super(error);
-    }
+interface CommandListener {
+    fun onCommandCompleted(id: Int, exitCode: Int)
+    fun onCommandTerminated(id: Int, reason: String)
+    fun onCommandOutput(id: Int, line: String)
 }
