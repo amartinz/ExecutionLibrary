@@ -29,6 +29,7 @@ import timber.log.Timber
 import java.io.*
 import java.lang.reflect.Field
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
@@ -37,7 +38,7 @@ import kotlin.concurrent.withLock
 
 abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDeniedException::class) constructor(var isRoot: Boolean) {
     companion object {
-        val DEFAULT_TIMEOUT = 15000
+        val DEFAULT_TIMEOUT = TimeUnit.SECONDS.toMillis(5).toInt()
 
         private val ENCODING = "UTF-8"
         private val TOKEN = "Y#*N^W^T@#@G"
@@ -98,6 +99,10 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
         outputStream = OutputStreamWriter(process.outputStream, ENCODING)
 
         startWorker()
+    }
+
+    fun add(command: String): Command {
+        return add(Command(command))
     }
 
     fun add(command: Command): Command {

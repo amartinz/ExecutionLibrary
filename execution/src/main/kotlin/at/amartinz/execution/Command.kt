@@ -24,6 +24,7 @@
 
 package at.amartinz.execution
 
+import android.content.Context
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -51,7 +52,7 @@ class Command(vararg commands: String, val id: Int = 0, val timeout: Int = Shell
     var outputList: MutableList<String>? = null
 
     val output: String?
-        get() = if (outputBuilder != null) outputBuilder!!.toString().trim { it <= ' ' } else null
+        get() = if (outputBuilder != null) outputBuilder.toString().trim { it <= ' ' } else null
 
     private val commandLock = ReentrantLock()
     private val commandCondition: Condition = commandLock.newCondition()
@@ -62,6 +63,11 @@ class Command(vararg commands: String, val id: Int = 0, val timeout: Int = Shell
         val OUTPUT_STRING = 2
         val OUTPUT_STRING_NEWLINE = 3
         val OUTPUT_LIST = 4
+
+        fun callBusyBox(context: Context, applet: String? = null, args: String? = null): Command {
+            val command = BusyBox.callApplet(context, applet, args)
+            return Command(command)
+        }
     }
 
     init {
@@ -139,13 +145,15 @@ class Command(vararg commands: String, val id: Int = 0, val timeout: Int = Shell
         }
     }
 
-    @Synchronized fun resetCommand() {
+    @Synchronized fun resetCommand(): Command {
         this.isFinished = false
         this.totalOutput = 0
         this.totalOutputProcessed = 0
         this.isExecuting = false
         this.isTerminated = false
         this.exitCode = -1
+        this.outputBuilder?.setLength(0)
+        return this
     }
 
     fun commandFinished() {
