@@ -82,7 +82,10 @@ object BusyBox {
             DeviceHelper.Arch.MIPS, DeviceHelper.Arch.MIPS64 -> {
                 busyBoxResId = R.raw.busybox_mips
             }
-            DeviceHelper.Arch.UNKNOWN, DeviceHelper.Arch.X86, DeviceHelper.Arch.X86_64 -> {
+            DeviceHelper.Arch.X86, DeviceHelper.Arch.X86_64 -> {
+                busyBoxResId = R.raw.busybox_x86
+            }
+            DeviceHelper.Arch.UNKNOWN -> {
                 busyBoxResId = 0
             }
         }
