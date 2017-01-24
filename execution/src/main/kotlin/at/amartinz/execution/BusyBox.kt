@@ -28,6 +28,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.TextUtils
+import at.amartinz.execution.helper.DeviceHelper
 import timber.log.Timber
 import java.io.File
 
@@ -69,6 +70,30 @@ object BusyBox {
         cmd = String.format("%s %s", cmd, args)
         Timber.v("Calling applet \"%s\" with args -> %s", applet, args)
         return cmd
+    }
+
+    fun installIncludedBusyBox(context: Context): Boolean {
+        val detectedArch = DeviceHelper.detectArch()
+        val busyBoxResId: Int
+        when (detectedArch) {
+            DeviceHelper.Arch.ARM, DeviceHelper.Arch.ARM64 -> {
+                busyBoxResId = R.raw.busybox_arm
+            }
+            DeviceHelper.Arch.MIPS, DeviceHelper.Arch.MIPS64 -> {
+                busyBoxResId = R.raw.busybox_mips
+            }
+            DeviceHelper.Arch.UNKNOWN, DeviceHelper.Arch.X86, DeviceHelper.Arch.X86_64 -> {
+                busyBoxResId = 0
+            }
+        }
+        if (busyBoxResId != 0) {
+            val extractedBinary = Installer.extractBinary(context, "busybox", busyBoxResId)
+            Timber.v("Extracted binary '%s' (%s) for arch '%s' -> %s", "busybox", busyBoxResId, detectedArch, extractedBinary)
+            return extractedBinary
+        }
+
+        Timber.w("Arch '%s' is not supported right now!", detectedArch)
+        return false
     }
 
     /**

@@ -29,6 +29,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.support.v7.app.AppCompatActivity
 import at.amartinz.execution.*
+import at.amartinz.execution.helper.DeviceHelper
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
@@ -58,6 +59,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun testBusyBoxInstallation() {
+        val is64Bit = DeviceHelper.is64Bit()
+        val supportedAbis = DeviceHelper.getSupportedAbis()
+        val detectedArch = DeviceHelper.detectArch()
+        Timber.d("Is 64 bit -> %s", is64Bit)
+        Timber.d("Supported ABIs -> %s", supportedAbis)
+        Timber.d("Detected arch -> %s", detectedArch)
+
         // can be done generically by installer for any file
         var busyBoxAvailable = Installer.binaryExists(this, "busybox")
         Timber.d("BusyBox exists -> %s", busyBoxAvailable)
@@ -74,8 +82,7 @@ class MainActivity : AppCompatActivity() {
         Timber.d("BusyBox available -> %s", busyBoxAvailable)
 
         // not versioning, always install
-        val extractedBinary = Installer.extractBinary(this, "busybox", R.raw.busybox_arm /* TODO: arch detection */)
-        Timber.d("Extracted binary '%s' (%s) -> %s", "busybox", R.raw.busybox_arm, extractedBinary)
+        BusyBox.installIncludedBusyBox(this)
 
         // should be available, as it got freshly installed
         busyBoxAvailable = BusyBox.isAvailable(this)
