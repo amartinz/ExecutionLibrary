@@ -67,7 +67,7 @@ object RootCheck {
         // fire and forget id, just for fun
         RootShell.fireAndForget("id")
 
-        val rootShell = ShellManager.get().rootShell
+        val rootShell = ShellManager.get().getRootShell()
         isRooted = rootShell != null
         Timber.v("is rooted: %s", isRooted)
         return isRooted!!

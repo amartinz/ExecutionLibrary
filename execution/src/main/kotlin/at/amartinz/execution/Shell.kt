@@ -59,8 +59,12 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
             return shell.add(command.setOutputType(Command.OUTPUT_LIST)).waitFor()
         }
 
-        fun fireAndForgetInternal(command: Command, shell: Shell): Command {
-            return shell.add(command)
+        fun fireAndForgetInternal(command: Command, shell: Shell) {
+            val addedCommand = shell.add(command)
+            thread(name = "FireAndForget", block = {
+                addedCommand.waitFor()
+                shell.close()
+            })
         }
     }
 
@@ -87,8 +91,8 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
     private var totalRead: Int = 0
     private var toRead: Int = 0
 
-    val commandLock = ReentrantLock()
-    val commandCondition: Condition = commandLock.newCondition()
+    private val commandLock = ReentrantLock()
+    private val commandCondition: Condition = commandLock.newCondition()
 
     init {
         val cmd = if (isRoot) "su" else "/system/bin/sh"
@@ -133,6 +137,11 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
     }
 
     fun close() {
+        if (isClosed) {
+            Timber.d("Shell already closed - %s", this)
+            return
+        }
+
         var count = 0
         while (isExecuting) {
             Timber.v("Waiting on shell to finish executing before closing...")
@@ -149,7 +158,7 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
             this.notifyThreads()
         }
 
-        Timber.v("Shell closed! - %s", this)
+        Timber.v("Shell closed - %s", this)
     }
 
     private fun closeStreams() {

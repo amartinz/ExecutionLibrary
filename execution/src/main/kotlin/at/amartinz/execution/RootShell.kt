@@ -36,7 +36,7 @@ constructor() : Shell(true) {
         }
 
         fun fireAndBlock(command: Command): String? {
-            val shell = ShellManager.get().rootShell ?: return null
+            val shell = ShellManager.get().getRootShell() ?: return null
             return Shell.fireAndBlockInternal(command, shell).output
         }
 
@@ -45,7 +45,7 @@ constructor() : Shell(true) {
         }
 
         fun fireAndBlockString(command: Command): String? {
-            val shell = ShellManager.get().rootShell ?: return null
+            val shell = ShellManager.get().getRootShell() ?: return null
             return Shell.fireAndBlockStringInternal(command, shell).output
         }
 
@@ -54,7 +54,7 @@ constructor() : Shell(true) {
         }
 
         fun fireAndBlockStringNewline(command: Command): String? {
-            val shell = ShellManager.get().rootShell ?: return null
+            val shell = ShellManager.get().getRootShell() ?: return null
             return Shell.fireAndBlockStringNewlineInternal(command, shell).output
         }
 
@@ -63,17 +63,17 @@ constructor() : Shell(true) {
         }
 
         fun fireAndBlockList(command: Command): List<String>? {
-            val shell = ShellManager.get().rootShell ?: return null
+            val shell = ShellManager.get().getRootShell() ?: return null
             return Shell.fireAndBlockListInternal(command, shell).outputList
         }
 
-        fun fireAndForget(command: String): Command? {
-            return fireAndForget(Command(command))
+        fun fireAndForget(command: String) {
+            fireAndForget(Command(command))
         }
 
-        fun fireAndForget(command: Command): Command? {
-            val shell = ShellManager.get().rootShell ?: return null
-            return Shell.fireAndForgetInternal(command, shell)
+        fun fireAndForget(command: Command) {
+            val shell = ShellManager.get().getRootShell() ?: return
+            Shell.fireAndForgetInternal(command, shell)
         }
     }
 }

@@ -24,7 +24,6 @@
 
 package at.amartinz.execution
 
-import android.os.SystemClock
 import at.amartinz.execution.exceptions.RootDeniedException
 import timber.log.Timber
 import java.io.IOException
@@ -37,7 +36,6 @@ class ShellManager private constructor() {
 
         var RAMPAGE = false
 
-        private val random by lazy { Random(SystemClock.elapsedRealtime() - SystemClock.currentThreadTimeMillis()) }
         private val rootShells = Collections.synchronizedList(ArrayList<RootShell>())
         private val normalShells = Collections.synchronizedList(ArrayList<NormalShell>())
 
@@ -53,22 +51,8 @@ class ShellManager private constructor() {
         cleanupShells()
     }
 
-    val rootShell: RootShell?
-        get() = getRootShell(false)
-
-    fun getRootShell(newShell: Boolean): RootShell? {
-        var rootShell: RootShell?
-
-        synchronized(rootShells) {
-            if (!newShell && rootShells.size > 0) {
-                rootShell = rootShells[random.nextInt(rootShells.size)]
-                if (rootShell != null) {
-                    return rootShell
-                }
-            }
-        }
-
-        rootShell = createRootShell()
+    fun getRootShell(): RootShell? {
+        val rootShell = createRootShell()
         if (rootShell != null) {
             synchronized(rootShells) {
                 rootShells.add(rootShell)
@@ -96,22 +80,8 @@ class ShellManager private constructor() {
         return null
     }
 
-    val normalShell: NormalShell?
-        get() = getNormalShell(false)
-
-    fun getNormalShell(newShell: Boolean): NormalShell? {
-        var normalShell: NormalShell?
-
-        synchronized(normalShells) {
-            if (!newShell && normalShells.size > 0) {
-                normalShell = normalShells[random.nextInt(normalShells.size)]
-                if (normalShell != null) {
-                    return normalShell
-                }
-            }
-        }
-
-        normalShell = createNormalShell()
+    fun getNormalShell(): NormalShell? {
+        val normalShell = createNormalShell()
         if (normalShell != null) {
             synchronized(normalShells) {
                 normalShells.add(normalShell)
@@ -121,22 +91,49 @@ class ShellManager private constructor() {
     }
 
     private fun createNormalShell(): NormalShell? {
+        var exception: Exception? = null
         try {
             return NormalShell()
         } catch (e: IOException) {
-            Timber.e(e, "Error creating new shell")
+            exception = e
         } catch (e: TimeoutException) {
-            Timber.e(e, "Error creating new shell")
+            exception = e
         } catch (e: RootDeniedException) {
-            Timber.e(e, "Error creating new shell")
+            exception = e
+        } finally {
+            if (exception != null) {
+                Timber.e(exception, "Error creating new root shell")
+            }
         }
 
         return null
     }
 
+    fun closeShell(shell: Shell?) {
+        if (shell == null) {
+            return
+        }
+
+        if (shell is NormalShell) {
+            shell.close()
+            synchronized(normalShells) {
+                val removedShell = normalShells.remove(shell)
+                Timber.v("Removed shell '%s' - %s", shell, removedShell)
+            }
+        } else if (shell is RootShell) {
+            shell.close()
+            synchronized(rootShells) {
+                val removedShell = rootShells.remove(shell)
+                Timber.v("Removed shell '%s' - %s", shell, removedShell)
+            }
+        } else {
+            Timber.wtf("Something here is fishy...")
+        }
+    }
+
     fun cleanupRootShells() {
         synchronized(rootShells) {
-            if (rootShells.size > 0) {
+            if (rootShells.isNotEmpty()) {
                 val rootShellIterator = rootShells.iterator()
                 while (rootShellIterator.hasNext()) {
                     val rootShell = rootShellIterator.next()
@@ -150,7 +147,7 @@ class ShellManager private constructor() {
 
     fun cleanupNormalShells() {
         synchronized(normalShells) {
-            if (normalShells.size > 0) {
+            if (normalShells.isNotEmpty()) {
                 val normalShellIterator = normalShells.iterator()
                 while (normalShellIterator.hasNext()) {
                     val normalShell = normalShellIterator.next()

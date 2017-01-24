@@ -101,7 +101,10 @@ class MainActivity : AppCompatActivity() {
         result = NormalShell.fireAndBlockString(command)
         Timber.d("Ran '%s' and got:\n%s", command, result)
 
-        val cmd: Command = Command("echo \"Hey!\"", "echo You can also append commands this way") + "echo $'\n'" + "echo -e \"Cool, isn't it?\""
+        val cmd: Command = Command.callBusyBox(this, "echo", "\"Hey!\"") +
+                BusyBox.callApplet(this, "echo", "You can also append commands this way") +
+                BusyBox.callApplet(this, "echo", "-n $'\n'") +
+                BusyBox.callApplet(this, "echo", "-e \"Cool, isn't it?\"")
         result = NormalShell.fireAndBlockStringNewline(cmd)
         Timber.d("Ran '%s' and got:\n%s", cmd.getCommands(), result)
 
@@ -126,13 +129,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun testBusyBox() {
-        val normalShell = ShellManager.get().normalShell
+        val normalShell = ShellManager.get().getNormalShell()
         Timber.d("Got a new NormalShell -> %s", normalShell)
         if (normalShell == null) {
             Timber.w("NormalShell is null, so all commands will be skipped!")
         }
 
-        val rootShell = ShellManager.get().rootShell
+        val rootShell = ShellManager.get().getRootShell()
         Timber.d("Got a new RootShell -> %s", rootShell)
         if (rootShell == null) {
             Timber.w("RootShell is null, so all commands will be skipped!")
@@ -147,6 +150,10 @@ class MainActivity : AppCompatActivity() {
         command = Command.callBusyBox(this, "cat", "/proc/cmdline").setOutputType(Command.OUTPUT_STRING_NEWLINE)
         executeAndPrint(command, normalShell)
         executeAndPrint(command, rootShell)
+
+        // we can close shells immediatly too
+        ShellManager.get().closeShell(normalShell)
+        ShellManager.get().closeShell(rootShell)
     }
 
     fun executeAndPrint(command: Command, shell: Shell?) {
