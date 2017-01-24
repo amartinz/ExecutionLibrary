@@ -32,7 +32,7 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class Command(vararg commands: String, val id: Int = 0, val timeout: Int = Shell.DEFAULT_TIMEOUT) : CommandListener {
+open class Command(vararg commands: String, val id: Int = 0, val timeout: Int = Shell.DEFAULT_TIMEOUT) : CommandListener {
     private var exitCode: Int = 0
 
     private val commands: ArrayList<String>

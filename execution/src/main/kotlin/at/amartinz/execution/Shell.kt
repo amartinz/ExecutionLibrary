@@ -74,6 +74,8 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
     var isClosed: Boolean = false
     var isExecuting: Boolean = false
 
+    var shouldClose: Boolean = false
+
     var error: String? = null
 
     private val process: Process
@@ -81,8 +83,6 @@ abstract class Shell @Throws(IOException::class, TimeoutException::class, RootDe
     private val inputStreamReader: BufferedReader
     private val errorStreamReader: BufferedReader
     private val outputStream: OutputStreamWriter
-
-    private var shouldClose: Boolean = false
 
     private val commands = ArrayList<Command>()
     private val maxCommands = 1000
